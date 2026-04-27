@@ -2,6 +2,8 @@
 
 Framework-agnostic toast notification system for Laravel, Livewire and Alpine. Pure CSS themes (no Tailwind, no Bootstrap), drop-in API, zero JS dependencies.
 
+**[Live preview →](https://edulazaro.github.io/wiretoast/)** Try the 9 themes, 5 types, 7 positions and dark mode in the interactive demo.
+
 ## Requirements
 
 - PHP `>=8.2`

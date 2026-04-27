@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>wiretoast prototype</title>
+<title>Wiretoast Preview · Toast notifications for Laravel, Livewire and Alpine</title>
 <style>
 /* =========================================================
    wiretoast design tokens
@@ -661,7 +661,7 @@ pre code {
 
 <div class="page">
     <h1>Wiretoast Preview</h1>
-    <p class="sub">9 temas visuales · 5 tipos semánticos · 7 posiciones · dark mode automático + opt-in</p>
+    <p class="sub">9 visual themes · 5 semantic types · 7 positions · automatic dark mode + opt-in</p>
 
     <div class="card">
         <h2>Controls</h2>
@@ -704,7 +704,7 @@ pre code {
                 <label for="progress">Progress bar</label>
                 <label class="toggle">
                     <input type="checkbox" id="progress">
-                    <span>Mostrar barra (pause on hover)</span>
+                    <span>Show bar (pause on hover)</span>
                 </label>
             </div>
         </div>
@@ -737,44 +737,44 @@ pre code {
     </div>
 
     <div class="card">
-        <h2>API (igual en los 3 entornos, siempre <code>notify</code>)</h2>
+        <h2>API (same in all three environments, always <code>notify</code>)</h2>
 
         <p class="api-label">JavaScript (vanilla)</p>
-<pre><code>window.notify('Cambios guardados', 'success');
-window.notify({ title: 'Guardado', message: 'Todo correcto' }, 'success');
-window.notify('Texto', 'warning', { position: 'bottom-center', timeout: 3000 });</code></pre>
+<pre><code>window.notify('Saved successfully', 'success');
+window.notify({ title: 'Saved', message: 'All changes applied' }, 'success');
+window.notify('Heads up', 'warning', { position: 'bottom-center', timeout: 3000 });</code></pre>
 
         <p class="api-label">Alpine.js</p>
-<pre><code>&lt;button @click="$dispatch('notify', { message: 'Hola', type: 'success' })"&gt;
+<pre><code>&lt;button @click="$dispatch('notify', { message: 'Hello', type: 'success' })"&gt;
     Trigger
 &lt;/button&gt;
 
 &lt;button @click="$dispatch('notify', {
-    title: 'Guardado',
-    message: 'Todo OK',
+    title: 'Saved',
+    message: 'All good',
     type: 'success',
     position: 'bottom-right'
-})"&gt;Con título&lt;/button&gt;</code></pre>
+})"&gt;With title&lt;/button&gt;</code></pre>
 
         <p class="api-label">Livewire (PHP)</p>
-<pre><code>// Texto simple
-$this-&gt;notify('Cambios guardados', 'success');
+<pre><code>// Plain text
+$this-&gt;notify('Saved successfully', 'success');
 
-// Con título
-$this-&gt;notify(['title' =&gt; 'Guardado', 'message' =&gt; 'Todo OK'], 'success');
+// With title
+$this-&gt;notify(['title' =&gt; 'Saved', 'message' =&gt; 'All good'], 'success');
 
-// Con opciones
-$this-&gt;notify('Mensaje', 'warning', [
+// With options
+$this-&gt;notify('Heads up', 'warning', [
     'position' =&gt; 'bottom-center',
     'timeout'  =&gt; 3000,
 ]);</code></pre>
 
         <p class="api-hint">
-            Tipos: <code>success</code>, <code>error</code>, <code>warning</code>, <code>info</code>, <code>neutral</code>.
-            Tema: <code>data-wt-theme</code> en <code>&lt;body&gt;</code>. Modo: <code>data-wt-theme-mode</code>. Posición por defecto: <code>data-wt-default-position</code>.
+            Types: <code>success</code>, <code>error</code>, <code>warning</code>, <code>info</code>, <code>neutral</code>.
+            Theme: <code>data-wt-theme</code> on <code>&lt;body&gt;</code>. Mode: <code>data-wt-theme-mode</code>. Default position: <code>data-wt-default-position</code>.
         </p>
         <p class="api-hint">
-            Internamente, tanto Livewire como Alpine disparan un CustomEvent <code>notify</code> en <code>window</code>, que el componente escucha.
+            Internally, both Livewire and Alpine fire a <code>notify</code> CustomEvent on <code>window</code>, which the component listens for.
         </p>
     </div>
 
@@ -892,11 +892,11 @@ $this-&gt;notify('Mensaje', 'warning', [
     const withProgress = (opts = {}) => progressToggle.checked ? { ...opts, progress: true } : opts;
 
     const MESSAGES = {
-        success: { title: 'Guardado', message: 'Los cambios se han guardado correctamente.' },
-        error:   { title: 'Error de conexión', message: 'No se pudo conectar al servidor.' },
-        warning: { title: 'Sesión a punto de expirar', message: 'Tu sesión caducará en 5 minutos.' },
-        info:    'Hay 3 actualizaciones disponibles',
-        neutral: 'Archivo subido a /uploads/doc.pdf',
+        success: { title: 'Saved', message: 'All changes have been saved successfully.' },
+        error:   { title: 'Connection error', message: 'Could not connect to the server.' },
+        warning: { title: 'Session about to expire', message: 'Your session will expire in 5 minutes.' },
+        info:    '3 updates available',
+        neutral: 'File uploaded to /uploads/doc.pdf',
     };
 
     document.querySelectorAll('[data-trigger]').forEach(btn => {
@@ -909,7 +909,7 @@ $this-&gt;notify('Mensaje', 'warning', [
     document.querySelectorAll('[data-position]').forEach(btn => {
         btn.addEventListener('click', () => {
             const pos = btn.dataset.position;
-            window.notify(`posición: ${pos}`, 'info', withProgress({ position: pos }));
+            window.notify(`position: ${pos}`, 'info', withProgress({ position: pos }));
         });
     });
 
@@ -921,7 +921,7 @@ $this-&gt;notify('Mensaje', 'warning', [
 
     document.getElementById('trigger-all-positions').addEventListener('click', () => {
         POSITIONS.forEach((pos, i) => {
-            setTimeout(() => window.notify(`posición: ${pos}`, 'info', withProgress({ position: pos })), i * 100);
+            setTimeout(() => window.notify(`position: ${pos}`, 'info', withProgress({ position: pos })), i * 100);
         });
     });
 
