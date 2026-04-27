@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>wiretoast prototype</title>
+<style>
+/* =========================================================
+   wiretoast design tokens
+   ========================================================= */
+:root {
+    /* structural */
+    --wt-radius: 10px;
+    --wt-padding: 14px 16px;
+    --wt-gap: 10px;
+    --wt-width: 360px;
+    --wt-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --wt-font-size: 14px;
+    --wt-line-height: 1.5;
+
+    /* base colors (light) */
+    --wt-bg: #ffffff;
+    --wt-text: #0f172a;
+    --wt-text-muted: #64748b;
+    --wt-border: rgba(15, 23, 42, 0.08);
+    --wt-shadow: 0 6px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
+
+    /* semantic palette */
+    --wt-success: #16a34a;
+    --wt-error:   #dc2626;
+    --wt-warning: #d97706;
+    --wt-info:    #2563eb;
+    --wt-neutral: #64748b;
+
+    /* semantic tints (soft bg) */
+    --wt-success-tint: #dcfce7;
+    --wt-error-tint:   #fee2e2;
+    --wt-warning-tint: #fef3c7;
+    --wt-info-tint:    #dbeafe;
+    --wt-neutral-tint: #f1f5f9;
+
+    /* motion */
+    --wt-duration: 280ms;
+    --wt-easing: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* dark mode: automatic via OS */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --wt-bg: #1e1e24;
+        --wt-text: #f1f5f9;
+        --wt-text-muted: #94a3b8;
+        --wt-border: rgba(255, 255, 255, 0.08);
+        --wt-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+
+        --wt-success-tint: rgba(22, 163, 74, 0.15);
+        --wt-error-tint:   rgba(220, 38, 38, 0.15);
+        --wt-warning-tint: rgba(217, 119, 6, 0.15);
+        --wt-info-tint:    rgba(37, 99, 235, 0.15);
+        --wt-neutral-tint: rgba(100, 116, 139, 0.15);
+    }
+}
+
+/* dark mode: explicit opt-in */
+[data-wt-theme-mode="dark"], .dark {
+    --wt-bg: #1e1e24;
+    --wt-text: #f1f5f9;
+    --wt-text-muted: #94a3b8;
+    --wt-border: rgba(255, 255, 255, 0.08);
+    --wt-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+
+    --wt-success-tint: rgba(22, 163, 74, 0.15);
+    --wt-error-tint:   rgba(220, 38, 38, 0.15);
+    --wt-warning-tint: rgba(217, 119, 6, 0.15);
+    --wt-info-tint:    rgba(37, 99, 235, 0.15);
+    --wt-neutral-tint: rgba(100, 116, 139, 0.15);
+}
+
+/* explicit light (override auto dark) */
+[data-wt-theme-mode="light"] {
+    --wt-bg: #ffffff;
+    --wt-text: #0f172a;
+    --wt-text-muted: #64748b;
+    --wt-border: rgba(15, 23, 42, 0.08);
+    --wt-shadow: 0 6px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
+
+    --wt-success-tint: #dcfce7;
+    --wt-error-tint:   #fee2e2;
+    --wt-warning-tint: #fef3c7;
+    --wt-info-tint:    #dbeafe;
+    --wt-neutral-tint: #f1f5f9;
+}
+
+/* =========================================================
+   Containers (7 positions): stack independent per position
+   ========================================================= */
+.wt-container {
+    position: fixed;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: var(--wt-gap);
+    padding: 16px;
+    pointer-events: none;
+    max-height: 100vh;
+    overflow: hidden;
+}
+
+.wt-container[data-wt-position="top-right"]    { top: 0; right: 0; align-items: flex-end; }
+.wt-container[data-wt-position="top-left"]     { top: 0; left: 0;  align-items: flex-start; }
+.wt-container[data-wt-position="bottom-right"] { bottom: 0; right: 0; align-items: flex-end; flex-direction: column-reverse; }
+.wt-container[data-wt-position="bottom-left"]  { bottom: 0; left: 0;  align-items: flex-start; flex-direction: column-reverse; }
+.wt-container[data-wt-position="top-center"]    { top: 0; left: 50%; transform: translateX(-50%); align-items: center; }
+.wt-container[data-wt-position="bottom-center"] { bottom: 0; left: 50%; transform: translateX(-50%); align-items: center; flex-direction: column-reverse; }
+.wt-container[data-wt-position="center"]        { top: 50%; left: 50%; transform: translate(-50%, -50%); align-items: center; }
+
+/* =========================================================
+   Toast base
+   ========================================================= */
+.wt-toast {
+    position: relative;
+    overflow: hidden;
+    width: var(--wt-width);
+    max-width: calc(100vw - 32px);
+    padding: var(--wt-padding);
+    background: var(--wt-bg);
+    color: var(--wt-text);
+    border: 1px solid var(--wt-border);
+    border-radius: var(--wt-radius);
+    box-shadow: var(--wt-shadow);
+    font-family: var(--wt-font);
+    font-size: var(--wt-font-size);
+    line-height: var(--wt-line-height);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    column-gap: 12px;
+    align-items: start;
+    pointer-events: auto;
+    animation: wt-in var(--wt-duration) var(--wt-easing);
+    transition: opacity 200ms, transform 200ms;
+}
+
+/* progress bar (opt-in): ::after drains from 100% to 0 over --wt-progress-duration.
+   Animation IS the timer, so pause-on-hover pauses the lifetime too. */
+.wt-toast[data-wt-progress="true"]::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: 100%;
+    background: var(--wt-accent);
+    opacity: 0.75;
+    transform-origin: left;
+    animation: wt-progress var(--wt-progress-duration, 5000ms) linear forwards;
+}
+.wt-toast[data-wt-progress="true"]:hover::after {
+    animation-play-state: paused;
+}
+
+@keyframes wt-progress {
+    from { transform: scaleX(1); }
+    to   { transform: scaleX(0); }
+}
+
+/* per-theme tweaks for the progress bar */
+[data-wt-theme="gradient"] .wt-toast[data-wt-progress="true"]::after {
+    background: rgba(255, 255, 255, 0.8);
+}
+[data-wt-theme="neon"] .wt-toast[data-wt-progress="true"]::after {
+    box-shadow: 0 0 10px var(--wt-accent);
+    opacity: 1;
+}
+[data-wt-theme="minimal"] .wt-toast[data-wt-progress="true"]::after {
+    height: 2px;
+    opacity: 0.5;
+}
+
+/* =========================================================
+   Theme: claude (warm minimal, inspired by Anthropic/Claude UI)
+   ========================================================= */
+[data-wt-theme="claude"] .wt-toast {
+    background: #FAF9F5;
+    color: #1A1A1A;
+    border: 1px solid rgba(26, 26, 26, 0.08);
+    border-top: 2px solid var(--wt-accent);
+    border-radius: 10px;
+    box-shadow:
+        0 8px 24px rgba(26, 26, 26, 0.06),
+        0 2px 6px rgba(26, 26, 26, 0.04);
+    padding: 14px 16px;
+    letter-spacing: -0.005em;
+}
+[data-wt-theme="claude"] .wt-title { color: #1A1A1A; font-weight: 600; }
+[data-wt-theme="claude"] .wt-stack .wt-title + .wt-body { color: #6B6560; opacity: 1; }
+[data-wt-theme="claude"] .wt-toast[data-wt-progress="true"]::after { height: 2px; opacity: 0.5; }
+@media (prefers-color-scheme: dark) {
+    [data-wt-theme="claude"] .wt-toast { background: #262321; color: #F5F4EE; border-color: rgba(255,255,255,0.08); }
+    [data-wt-theme="claude"] .wt-title { color: #F5F4EE; }
+    [data-wt-theme="claude"] .wt-stack .wt-title + .wt-body { color: #B8B3AC; }
+}
+[data-wt-theme-mode="dark"][data-wt-theme="claude"] .wt-toast,
+.dark[data-wt-theme="claude"] .wt-toast { background: #262321; color: #F5F4EE; border-color: rgba(255,255,255,0.08); }
+[data-wt-theme-mode="dark"][data-wt-theme="claude"] .wt-title,
+.dark[data-wt-theme="claude"] .wt-title { color: #F5F4EE; }
+[data-wt-theme-mode="dark"][data-wt-theme="claude"] .wt-stack .wt-title + .wt-body,
+.dark[data-wt-theme="claude"] .wt-stack .wt-title + .wt-body { color: #B8B3AC; }
+
+/* =========================================================
+   Theme: chatgpt (clean neutral, inspired by ChatGPT UI)
+   ========================================================= */
+[data-wt-theme="chatgpt"] .wt-toast {
+    background: #FFFFFF;
+    color: #0D0D0D;
+    border: 1px solid #E5E5E5;
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
+    padding: 14px 16px;
+    font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Inter", sans-serif;
+}
+[data-wt-theme="chatgpt"] .wt-title { color: #0D0D0D; font-weight: 600; }
+[data-wt-theme="chatgpt"] .wt-stack .wt-title + .wt-body { color: #5D5D5D; opacity: 1; }
+@media (prefers-color-scheme: dark) {
+    [data-wt-theme="chatgpt"] .wt-toast { background: #2F2F2F; color: #ECECEC; border-color: #4D4D4F; }
+    [data-wt-theme="chatgpt"] .wt-title { color: #ECECEC; }
+    [data-wt-theme="chatgpt"] .wt-stack .wt-title + .wt-body { color: #B4B4B4; }
+}
+[data-wt-theme-mode="dark"][data-wt-theme="chatgpt"] .wt-toast,
+.dark[data-wt-theme="chatgpt"] .wt-toast { background: #2F2F2F; color: #ECECEC; border-color: #4D4D4F; }
+[data-wt-theme-mode="dark"][data-wt-theme="chatgpt"] .wt-title,
+.dark[data-wt-theme="chatgpt"] .wt-title { color: #ECECEC; }
+[data-wt-theme-mode="dark"][data-wt-theme="chatgpt"] .wt-stack .wt-title + .wt-body,
+.dark[data-wt-theme="chatgpt"] .wt-stack .wt-title + .wt-body { color: #B4B4B4; }
+
+/* =========================================================
+   Theme: synthwave (retro 80s, purple/magenta gradient with neon glow)
+   ========================================================= */
+[data-wt-theme="synthwave"] .wt-toast {
+    background: linear-gradient(135deg, #1a0033 0%, #2d0066 100%);
+    color: #ffffff;
+    border: 1px solid var(--wt-accent);
+    border-radius: 0;
+    padding: 14px 16px;
+    font-family: ui-monospace, "JetBrains Mono", "Courier New", monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.06),
+        0 0 20px color-mix(in srgb, var(--wt-accent) 60%, transparent),
+        0 4px 30px color-mix(in srgb, var(--wt-accent) 40%, transparent);
+}
+[data-wt-theme="synthwave"] .wt-toast[data-wt-type="success"] { --wt-accent: #00ffaa; }
+[data-wt-theme="synthwave"] .wt-toast[data-wt-type="error"]   { --wt-accent: #ff003c; }
+[data-wt-theme="synthwave"] .wt-toast[data-wt-type="warning"] { --wt-accent: #ff8c00; }
+[data-wt-theme="synthwave"] .wt-toast[data-wt-type="info"]    { --wt-accent: #ff00ff; }
+[data-wt-theme="synthwave"] .wt-toast[data-wt-type="neutral"] { --wt-accent: #b400ff; }
+[data-wt-theme="synthwave"] .wt-icon {
+    color: var(--wt-accent);
+    filter: drop-shadow(0 0 6px var(--wt-accent));
+}
+[data-wt-theme="synthwave"] .wt-title {
+    color: var(--wt-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    font-size: 11px;
+    text-shadow: 0 0 8px var(--wt-accent);
+}
+[data-wt-theme="synthwave"] .wt-stack .wt-title + .wt-body { color: rgba(255,255,255,0.85); opacity: 1; }
+[data-wt-theme="synthwave"] .wt-close { color: var(--wt-accent); }
+[data-wt-theme="synthwave"] .wt-toast[data-wt-progress="true"]::after {
+    background: var(--wt-accent);
+    box-shadow: 0 0 10px var(--wt-accent);
+    opacity: 1;
+}
+
+.wt-toast.wt-leaving {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+}
+
+@keyframes wt-in {
+    from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* accent per semantic type */
+.wt-toast[data-wt-type="success"] { --wt-accent: var(--wt-success); --wt-tint: var(--wt-success-tint); }
+.wt-toast[data-wt-type="error"]   { --wt-accent: var(--wt-error);   --wt-tint: var(--wt-error-tint);   }
+.wt-toast[data-wt-type="warning"] { --wt-accent: var(--wt-warning); --wt-tint: var(--wt-warning-tint); }
+.wt-toast[data-wt-type="info"]    { --wt-accent: var(--wt-info);    --wt-tint: var(--wt-info-tint);    }
+.wt-toast[data-wt-type="neutral"] { --wt-accent: var(--wt-neutral); --wt-tint: var(--wt-neutral-tint); }
+
+.wt-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: var(--wt-accent);
+    margin-top: 1px;
+}
+.wt-icon svg { display: block; width: 100%; height: 100%; }
+
+.wt-stack {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.wt-title {
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.wt-body {
+    min-width: 0;
+    white-space: pre-line;
+    word-wrap: break-word;
+}
+
+/* when title is present, body is muted / smaller */
+.wt-stack .wt-title + .wt-body {
+    opacity: 0.75;
+    font-size: 13px;
+}
+
+.wt-close {
+    all: unset;
+    cursor: pointer;
+    opacity: 0.5;
+    padding: 2px;
+    border-radius: 4px;
+    color: inherit;
+    transition: opacity 120ms;
+    flex-shrink: 0;
+}
+.wt-close:hover { opacity: 1; }
+.wt-close svg { display: block; width: 16px; height: 16px; }
+
+/* =========================================================
+   Theme: flat (default, no override needed)
+   ========================================================= */
+
+/* =========================================================
+   Theme: soft (pastel tinted background per type)
+   ========================================================= */
+[data-wt-theme="soft"] .wt-toast {
+    background: var(--wt-tint);
+    border: 1px solid var(--wt-accent);
+    border-color: color-mix(in srgb, var(--wt-accent) 25%, transparent);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--wt-accent) 12%, transparent);
+    border-radius: 12px;
+}
+
+/* =========================================================
+   Theme: glass (frosted / backdrop blur)
+   ========================================================= */
+[data-wt-theme="glass"] .wt-toast {
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+    border-radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+    [data-wt-theme="glass"] .wt-toast {
+        background: rgba(30, 30, 35, 0.55);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+}
+[data-wt-theme-mode="dark"][data-wt-theme="glass"] .wt-toast,
+.dark[data-wt-theme="glass"] .wt-toast {
+    background: rgba(30, 30, 35, 0.55);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* =========================================================
+   Theme: gradient (colored gradient per type, white text)
+   ========================================================= */
+[data-wt-theme="gradient"] .wt-toast {
+    background: linear-gradient(135deg,
+        var(--wt-accent),
+        color-mix(in srgb, var(--wt-accent) 65%, black));
+    color: white;
+    border: none;
+    box-shadow: 0 10px 30px color-mix(in srgb, var(--wt-accent) 35%, transparent);
+    border-radius: 12px;
+}
+[data-wt-theme="gradient"] .wt-icon,
+[data-wt-theme="gradient"] .wt-close {
+    color: white;
+}
+
+/* =========================================================
+   Theme: neon (dark panel with glowing accent border)
+   ========================================================= */
+[data-wt-theme="neon"] .wt-toast {
+    background: #0a0a12;
+    color: var(--wt-accent);
+    border: 1px solid var(--wt-accent);
+    border-radius: 4px;
+    font-family: "JetBrains Mono", "Courier New", monospace;
+    font-size: 13px;
+    letter-spacing: 0.3px;
+    box-shadow:
+        0 0 20px color-mix(in srgb, var(--wt-accent) 50%, transparent),
+        inset 0 0 20px color-mix(in srgb, var(--wt-accent) 8%, transparent);
+    text-shadow: 0 0 6px color-mix(in srgb, var(--wt-accent) 50%, transparent);
+}
+[data-wt-theme="neon"] .wt-icon {
+    filter: drop-shadow(0 0 6px var(--wt-accent));
+}
+
+/* =========================================================
+   Theme: minimal (left accent line, no shadow, typography-first)
+   ========================================================= */
+[data-wt-theme="minimal"] .wt-toast {
+    background: var(--wt-bg);
+    border: none;
+    border-left: 3px solid var(--wt-accent);
+    border-radius: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    padding: 12px 16px;
+}
+
+/* =========================================================
+   Demo page chrome
+   ========================================================= */
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--wt-font);
+    color: #1e293b;
+    min-height: 100vh;
+}
+
+body {
+    background:
+        radial-gradient(circle at 20% 20%, #a78bfa 0%, transparent 40%),
+        radial-gradient(circle at 80% 10%, #fb7185 0%, transparent 35%),
+        radial-gradient(circle at 50% 80%, #38bdf8 0%, transparent 40%),
+        linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    background-attachment: fixed;
+}
+
+.dark body, [data-wt-theme-mode="dark"] body {
+    color: #e2e8f0;
+    background:
+        radial-gradient(circle at 20% 20%, #4c1d95 0%, transparent 40%),
+        radial-gradient(circle at 80% 10%, #831843 0%, transparent 35%),
+        radial-gradient(circle at 50% 80%, #0c4a6e 0%, transparent 40%),
+        linear-gradient(135deg, #0f172a 0%, #020617 100%);
+}
+
+.page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 48px 24px 120px;
+}
+
+.page h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+}
+
+.page .sub {
+    color: #64748b;
+    margin: 0 0 32px;
+    font-size: 15px;
+}
+
+.dark .page .sub { color: #94a3b8; }
+
+.card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.dark .card, [data-wt-theme-mode="dark"] .card {
+    background: rgba(30, 30, 35, 0.7);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+}
+
+.card h2 {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 16px;
+    color: #64748b;
+}
+
+.dark .card h2 { color: #94a3b8; }
+
+.controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.control label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: #475569;
+}
+
+.dark .control label { color: #cbd5e1; }
+
+.control select {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(15, 23, 42, 0.15);
+    background: white;
+    font-size: 14px;
+    font-family: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(15, 23, 42, 0.15);
+    background: white;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+}
+.toggle input { cursor: pointer; }
+.dark .toggle, [data-wt-theme-mode="dark"] .toggle {
+    background: #1e1e24;
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #e2e8f0;
+}
+
+.dark .control select, [data-wt-theme-mode="dark"] .control select {
+    background: #1e1e24;
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #e2e8f0;
+}
+
+.btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.btn {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    background: white;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    color: inherit;
+    cursor: pointer;
+    transition: transform 120ms, box-shadow 120ms;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.btn:active { transform: translateY(0); }
+
+.dark .btn, [data-wt-theme-mode="dark"] .btn {
+    background: #1e1e24;
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #e2e8f0;
+}
+
+.btn-success { background: #16a34a; color: white; border-color: transparent; }
+.btn-error   { background: #dc2626; color: white; border-color: transparent; }
+.btn-warning { background: #d97706; color: white; border-color: transparent; }
+.btn-info    { background: #2563eb; color: white; border-color: transparent; }
+.btn-neutral { background: #64748b; color: white; border-color: transparent; }
+
+.btn-primary { background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; border-color: transparent; }
+
+code {
+    background: rgba(15, 23, 42, 0.08);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: "JetBrains Mono", "Courier New", monospace;
+}
+.dark code, [data-wt-theme-mode="dark"] code { background: rgba(255, 255, 255, 0.1); }
+
+.api-label {
+    margin: 20px 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #475569;
+}
+.api-label:first-of-type { margin-top: 0; }
+.dark .api-label, [data-wt-theme-mode="dark"] .api-label { color: #cbd5e1; }
+
+pre {
+    margin: 0;
+    padding: 14px 16px;
+    background: rgba(15, 23, 42, 0.05);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.55;
+}
+pre code {
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    font-size: inherit;
+}
+.dark pre, [data-wt-theme-mode="dark"] pre {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.api-hint {
+    margin: 14px 0 0;
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.6;
+}
+.dark .api-hint, [data-wt-theme-mode="dark"] .api-hint { color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<div class="page">
+    <h1>wiretoast design prototype</h1>
+    <p class="sub">9 temas visuales · 5 tipos semánticos · 7 posiciones · dark mode automático + opt-in</p>
+
+    <div class="card">
+        <h2>Controls</h2>
+        <div class="controls">
+            <div class="control">
+                <label for="theme">Theme</label>
+                <select id="theme">
+                    <option value="flat">flat (default)</option>
+                    <option value="soft">soft</option>
+                    <option value="glass">glass</option>
+                    <option value="gradient">gradient</option>
+                    <option value="neon">neon</option>
+                    <option value="minimal">minimal</option>
+                    <option value="claude">claude</option>
+                    <option value="chatgpt">chatgpt</option>
+                    <option value="synthwave">synthwave</option>
+                </select>
+            </div>
+            <div class="control">
+                <label for="mode">Mode</label>
+                <select id="mode">
+                    <option value="auto">auto (OS)</option>
+                    <option value="light">light</option>
+                    <option value="dark">dark</option>
+                </select>
+            </div>
+            <div class="control">
+                <label for="position">Default position</label>
+                <select id="position">
+                    <option value="top-right">top-right</option>
+                    <option value="top-left">top-left</option>
+                    <option value="top-center">top-center</option>
+                    <option value="bottom-right">bottom-right</option>
+                    <option value="bottom-left">bottom-left</option>
+                    <option value="bottom-center">bottom-center</option>
+                    <option value="center">center</option>
+                </select>
+            </div>
+            <div class="control">
+                <label for="progress">Progress bar</label>
+                <label class="toggle">
+                    <input type="checkbox" id="progress">
+                    <span>Mostrar barra (pause on hover)</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Trigger by type</h2>
+        <div class="btn-row">
+            <button class="btn btn-success" data-trigger="success">success</button>
+            <button class="btn btn-error"   data-trigger="error">error</button>
+            <button class="btn btn-warning" data-trigger="warning">warning</button>
+            <button class="btn btn-info"    data-trigger="info">info</button>
+            <button class="btn btn-neutral" data-trigger="neutral">neutral</button>
+            <button class="btn btn-primary" id="trigger-all">trigger all (stacked)</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Test every position</h2>
+        <div class="btn-row">
+            <button class="btn" data-position="top-left">top-left</button>
+            <button class="btn" data-position="top-center">top-center</button>
+            <button class="btn" data-position="top-right">top-right</button>
+            <button class="btn" data-position="center">center</button>
+            <button class="btn" data-position="bottom-left">bottom-left</button>
+            <button class="btn" data-position="bottom-center">bottom-center</button>
+            <button class="btn" data-position="bottom-right">bottom-right</button>
+            <button class="btn btn-primary" id="trigger-all-positions">fire every position</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>API (igual en los 3 entornos, siempre <code>notify</code>)</h2>
+
+        <p class="api-label">JavaScript (vanilla)</p>
+<pre><code>window.notify('Cambios guardados', 'success');
+window.notify({ title: 'Guardado', message: 'Todo correcto' }, 'success');
+window.notify('Texto', 'warning', { position: 'bottom-center', timeout: 3000 });</code></pre>
+
+        <p class="api-label">Alpine.js</p>
+<pre><code>&lt;button @click="$dispatch('notify', { message: 'Hola', type: 'success' })"&gt;
+    Trigger
+&lt;/button&gt;
+
+&lt;button @click="$dispatch('notify', {
+    title: 'Guardado',
+    message: 'Todo OK',
+    type: 'success',
+    position: 'bottom-right'
+})"&gt;Con título&lt;/button&gt;</code></pre>
+
+        <p class="api-label">Livewire (PHP)</p>
+<pre><code>// Texto simple
+$this-&gt;notify('Cambios guardados', 'success');
+
+// Con título
+$this-&gt;notify(['title' =&gt; 'Guardado', 'message' =&gt; 'Todo OK'], 'success');
+
+// Con opciones
+$this-&gt;notify('Mensaje', 'warning', [
+    'position' =&gt; 'bottom-center',
+    'timeout'  =&gt; 3000,
+]);</code></pre>
+
+        <p class="api-hint">
+            Tipos: <code>success</code>, <code>error</code>, <code>warning</code>, <code>info</code>, <code>neutral</code>.
+            Tema: <code>data-wt-theme</code> en <code>&lt;body&gt;</code>. Modo: <code>data-wt-theme-mode</code>. Posición por defecto: <code>data-wt-default-position</code>.
+        </p>
+        <p class="api-hint">
+            Internamente, tanto Livewire como Alpine disparan un CustomEvent <code>notify</code> en <code>window</code>, que el componente escucha.
+        </p>
+    </div>
+</div>
+
+<div id="wt-root"></div>
+
+<script>
+(function () {
+    const POSITIONS = [
+        'top-left', 'top-center', 'top-right',
+        'bottom-left', 'bottom-center', 'bottom-right',
+        'center'
+    ];
+
+    const root = document.getElementById('wt-root');
+    POSITIONS.forEach(pos => {
+        const el = document.createElement('div');
+        el.className = 'wt-container';
+        el.dataset.wtPosition = pos;
+        root.appendChild(el);
+    });
+
+    const ICONS = {
+        success: '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>',
+        error:   '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>',
+        warning: '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>',
+        info:    '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/></svg>',
+        neutral: '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 1h6v2H7V6zm0 4h6v2H7v-2z" clip-rule="evenodd"/></svg>',
+    };
+
+    const CLOSE_ICON = '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/></svg>';
+
+    window.notify = function (input, type = 'info', opts = {}) {
+        let title = null;
+        let message = '';
+
+        if (input && typeof input === 'object') {
+            title = input.title || null;
+            message = input.message || '';
+            if (input.position) opts.position = input.position;
+            if (input.timeout !== undefined) opts.timeout = input.timeout;
+            if (input.progress !== undefined) opts.progress = input.progress;
+        } else {
+            message = input;
+        }
+
+        const position = opts.position || document.body.dataset.wtDefaultPosition || 'top-right';
+        const timeout = opts.timeout ?? 5000;
+        const progress = opts.progress ?? false;
+
+        const container = document.querySelector(`.wt-container[data-wt-position="${position}"]`);
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = 'wt-toast';
+        toast.dataset.wtType = type;
+
+        const titleHtml = title ? '<div class="wt-title"></div>' : '';
+        toast.innerHTML = `
+            <div class="wt-icon">${ICONS[type] || ICONS.info}</div>
+            <div class="wt-stack">
+                ${titleHtml}
+                <div class="wt-body"></div>
+            </div>
+            <button class="wt-close" aria-label="Close">${CLOSE_ICON}</button>
+        `;
+        if (title) toast.querySelector('.wt-title').textContent = title;
+        toast.querySelector('.wt-body').textContent = message;
+
+        container.appendChild(toast);
+
+        const remove = () => {
+            toast.classList.add('wt-leaving');
+            setTimeout(() => toast.remove(), 200);
+        };
+
+        toast.querySelector('.wt-close').addEventListener('click', remove);
+
+        if (timeout > 0) {
+            if (progress) {
+                toast.dataset.wtProgress = 'true';
+                toast.style.setProperty('--wt-progress-duration', `${timeout}ms`);
+                toast.addEventListener('animationend', e => {
+                    if (e.animationName === 'wt-progress') remove();
+                });
+            } else {
+                setTimeout(remove, timeout);
+            }
+        }
+    };
+
+    // ---- controls ----
+    document.getElementById('theme').addEventListener('change', e => {
+        if (e.target.value === 'flat') delete document.body.dataset.wtTheme;
+        else document.body.dataset.wtTheme = e.target.value;
+    });
+
+    document.getElementById('mode').addEventListener('change', e => {
+        const v = e.target.value;
+        if (v === 'auto') delete document.body.dataset.wtThemeMode;
+        else document.body.dataset.wtThemeMode = v;
+    });
+
+    document.getElementById('position').addEventListener('change', e => {
+        document.body.dataset.wtDefaultPosition = e.target.value;
+    });
+
+    const progressToggle = document.getElementById('progress');
+    const withProgress = (opts = {}) => progressToggle.checked ? { ...opts, progress: true } : opts;
+
+    const MESSAGES = {
+        success: { title: 'Guardado', message: 'Los cambios se han guardado correctamente.' },
+        error:   { title: 'Error de conexión', message: 'No se pudo conectar al servidor.' },
+        warning: { title: 'Sesión a punto de expirar', message: 'Tu sesión caducará en 5 minutos.' },
+        info:    'Hay 3 actualizaciones disponibles',
+        neutral: 'Archivo subido a /uploads/doc.pdf',
+    };
+
+    document.querySelectorAll('[data-trigger]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const type = btn.dataset.trigger;
+            window.notify(MESSAGES[type], type, withProgress());
+        });
+    });
+
+    document.querySelectorAll('[data-position]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const pos = btn.dataset.position;
+            window.notify(`posición: ${pos}`, 'info', withProgress({ position: pos }));
+        });
+    });
+
+    document.getElementById('trigger-all').addEventListener('click', () => {
+        ['success', 'error', 'warning', 'info', 'neutral'].forEach((t, i) => {
+            setTimeout(() => window.notify(MESSAGES[t], t, withProgress()), i * 150);
+        });
+    });
+
+    document.getElementById('trigger-all-positions').addEventListener('click', () => {
+        POSITIONS.forEach((pos, i) => {
+            setTimeout(() => window.notify(`posición: ${pos}`, 'info', withProgress({ position: pos })), i * 100);
+        });
+    });
+
+    // Bridge: window event 'notify' (used by Livewire $this->dispatch('notify', ...)
+    // and Alpine $dispatch('notify', ...)). Accepts { message, type, title, position, timeout }.
+    window.addEventListener('notify', e => {
+        const d = e.detail || {};
+        const payload = d.title ? { title: d.title, message: d.message } : d.message;
+        window.notify(payload, d.type || 'info', { position: d.position, timeout: d.timeout });
+    });
+})();
+</script>
+
+</body>
+</html>
