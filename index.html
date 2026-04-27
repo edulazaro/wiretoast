@@ -599,6 +599,23 @@ code {
 }
 .dark code, [data-wt-theme-mode="dark"] code { background: rgba(255, 255, 255, 0.1); }
 
+.credits {
+    margin-top: 48px;
+    text-align: center;
+    font-size: 13px;
+    color: #64748b;
+}
+.credits a {
+    color: #475569;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+    transition: color 120ms, border-color 120ms;
+}
+.credits a:hover { color: #1e293b; border-color: #1e293b; }
+.dark .credits, [data-wt-theme-mode="dark"] .credits { color: #94a3b8; }
+.dark .credits a, [data-wt-theme-mode="dark"] .credits a { color: #cbd5e1; border-color: rgba(203, 213, 225, 0.3); }
+.dark .credits a:hover, [data-wt-theme-mode="dark"] .credits a:hover { color: #f1f5f9; border-color: #f1f5f9; }
+
 .api-label {
     margin: 20px 0 8px;
     font-size: 12px;
@@ -643,7 +660,7 @@ pre code {
 <body>
 
 <div class="page">
-    <h1>wiretoast design prototype</h1>
+    <h1>Wiretoast Preview</h1>
     <p class="sub">9 temas visuales · 5 tipos semánticos · 7 posiciones · dark mode automático + opt-in</p>
 
     <div class="card">
@@ -760,6 +777,12 @@ $this-&gt;notify('Mensaje', 'warning', [
             Internamente, tanto Livewire como Alpine disparan un CustomEvent <code>notify</code> en <code>window</code>, que el componente escucha.
         </p>
     </div>
+
+    <footer class="credits">
+        Developed by <a href="https://edulazaro.com" target="_blank" rel="noopener">Edu Lázaro</a>
+        · <a href="https://github.com/edulazaro/wiretoast" target="_blank" rel="noopener">GitHub</a>
+        · <a href="https://github.com/edulazaro" target="_blank" rel="noopener">@edulazaro</a>
+    </footer>
 </div>
 
 <div id="wt-root"></div>
