@@ -2,7 +2,7 @@
 
 Framework-agnostic toast notification system for Laravel, Livewire and Alpine. Pure CSS themes (no Tailwind, no Bootstrap), drop-in API, zero JS dependencies.
 
-**[Live preview →](https://edulazaro.github.io/wiretoast/)** Try the 9 themes, 5 types, 7 positions and dark mode in the interactive demo.
+**[Live preview →](https://edulazaro.github.io/wiretoast/)** Try the 10 themes, 5 types, 7 positions and dark mode in the interactive demo.
 
 ## Requirements
 
@@ -14,7 +14,7 @@ Framework-agnostic toast notification system for Laravel, Livewire and Alpine. P
 
 - 5 semantic types: `success`, `error`, `warning`, `info`, `neutral`
 - 7 stacked positions: `top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center`, `bottom-right`, `center`
-- 9 visual themes bundled: `flat`, `soft`, `glass`, `gradient`, `neon`, `minimal`, `claude`, `chatgpt`, `synthwave`
+- 10 visual themes bundled: `flat`, `soft`, `glass`, `gradient`, `neon`, `minimal`, `claude`, `chatgpt`, `synthwave`, `megaflow`
 - Custom themes via CSS variables (no Blade override needed)
 - Dark mode automatic (`prefers-color-scheme`) and opt-in (`.dark` / `[data-wt-theme-mode="dark"]`)
 - Optional auto-dismiss progress bar with pause-on-hover
