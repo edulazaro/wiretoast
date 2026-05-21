@@ -1,20 +1,36 @@
 /* =========================================================
    wiretoast — design tokens
+   Family meta-tokens (--wire-*) are shared across the wire*
+   family (wiremodal, wireforms, wirekit). Wiretoast-specific
+   tokens (--wt-*) derive from them when applicable. Override
+   either layer to customise.
    ========================================================= */
 :root {
-    --wt-radius: 10px;
+    /* Meta-tokens (shared family) — defaults */
+    --wire-bg: #ffffff;
+    --wire-bg-elevated: #ffffff;
+    --wire-text: #0f172a;
+    --wire-text-muted: #64748b;
+    --wire-border: rgba(15, 23, 42, 0.08);
+    --wire-accent: #2563eb;
+    --wire-radius: 10px;
+    --wire-shadow: 0 6px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
+    --wire-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+    /* Wiretoast-specific tokens (derived from family when sensible) */
+    --wt-radius: var(--wire-radius);
     --wt-padding: 14px 16px;
     --wt-gap: 10px;
     --wt-width: 360px;
-    --wt-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --wt-font: var(--wire-font);
     --wt-font-size: 14px;
     --wt-line-height: 1.5;
 
-    --wt-bg: #ffffff;
-    --wt-text: #0f172a;
-    --wt-text-muted: #64748b;
-    --wt-border: rgba(15, 23, 42, 0.08);
-    --wt-shadow: 0 6px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
+    --wt-bg: var(--wire-bg-elevated);
+    --wt-text: var(--wire-text);
+    --wt-text-muted: var(--wire-text-muted);
+    --wt-border: var(--wire-border);
+    --wt-shadow: var(--wire-shadow);
 
     --wt-success: #16a34a;
     --wt-error:   #dc2626;
@@ -305,6 +321,39 @@
 [data-wt-theme="minimal"] .wt-toast[data-wt-progress="true"]::after {
     height: 2px;
     opacity: 0.5;
+}
+
+/* =========================================================
+   Theme: studio (legal SaaS — gray-900 + sharp corners +
+   shadow-2xl ring). Paralelo al studio de wiremodal: setea
+   los meta-tokens `--wire-*` para que toasts y modales se
+   vean coherentes con un solo `data-wire-theme="studio"`.
+   ========================================================= */
+[data-wire-theme="studio"] {
+    --wire-bg: #ffffff;
+    --wire-bg-elevated: #ffffff;
+    --wire-text: #111827;
+    --wire-text-muted: #6b7280;
+    --wire-border: #e5e7eb;
+    --wire-accent: #111827;
+    --wire-radius: 2px;
+    --wire-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(17, 24, 39, 0.1);
+    --wire-font: "Sora", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+    --wt-success: #16a34a;
+    --wt-error:   #dc2626;
+    --wt-warning: #d97706;
+    --wt-info:    #111827;
+}
+[data-wire-theme="studio"][data-wire-theme-mode="dark"],
+.dark[data-wire-theme="studio"] {
+    --wire-bg: #111827;
+    --wire-bg-elevated: #111827;
+    --wire-text: #f3f4f6;
+    --wire-text-muted: #9ca3af;
+    --wire-border: #1f2937;
 }
 
 /* =========================================================
