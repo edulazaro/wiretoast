@@ -9,6 +9,9 @@
         "illuminate/support": ">=11.0",
         "illuminate/view": ">=11.0"
     },
+    "suggest": {
+        "livewire/livewire": "Use $this->notify('Saved', 'success') or $this->dispatch('notify', ...) from PHP components."
+    },
     "autoload": {
         "psr-4": {
             "EduLazaro\\Wiretoast\\": "src/"

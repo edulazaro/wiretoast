@@ -1,3 +1,5 @@
+![Wiretoast](art/banner.png)
+
 # wiretoast
 
 Framework-agnostic toast notification system for Laravel, Livewire and Alpine. Pure CSS themes (no Tailwind, no Bootstrap), drop-in API, zero JS dependencies.

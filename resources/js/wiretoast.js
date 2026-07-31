@@ -33,6 +33,20 @@
                 root.appendChild(el);
             }
         });
+
+        // Family bridge: honor [data-wire-theme] / [data-wire-theme-mode] on any
+        // ancestor (html/body) as if it were [data-wt-theme] on #wt-root, so the
+        // wire* family (wiremodal, wireforms, ...) and wiretoast share one switch.
+        // Explicit `theme=`/`mode=` props on the blade still win.
+        if (!root.hasAttribute('data-wt-theme')) {
+            const ancestor = document.querySelector('[data-wire-theme]');
+            if (ancestor) root.setAttribute('data-wt-theme', ancestor.getAttribute('data-wire-theme'));
+        }
+        if (!root.hasAttribute('data-wt-theme-mode')) {
+            const ancestor = document.querySelector('[data-wire-theme-mode]');
+            if (ancestor) root.setAttribute('data-wt-theme-mode', ancestor.getAttribute('data-wire-theme-mode'));
+        }
+
         return root;
     }
 
