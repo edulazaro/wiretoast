@@ -233,10 +233,19 @@ Motion: `--wt-duration`, `--wt-easing`
 
 Per-toast: `--wt-progress-duration` (set automatically when `progress: true`)
 
-## Credits
+## Sponsors
 
-Developed by [Edu Lázaro](https://edulazaro.com).
+Wiretoast is supported by the following sponsors. Thank you for keeping it growing:
+
+<p>
+  <a href="https://kenodo.com"><img src="art/logo-kenodo.png" width="24" alt="Kenodo"></a>&nbsp;<a href="https://kenodo.com">Kenodo</a>&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://andorradev.com"><img src="art/logo-andorradev.png" width="24" alt="AndorraDev"></a>&nbsp;<a href="https://andorradev.com">AndorraDev</a>
+</p>
+
+## Author
+
+Created by [Edu Lazaro](https://edulazaro.com)
 
 ## License
 
-MIT
+Wiretoast is open-sourced software licensed under the [MIT license](LICENSE).
