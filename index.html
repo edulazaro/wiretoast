@@ -723,6 +723,43 @@ pre code {
     line-height: 1.6;
 }
 .dark .api-hint, [data-wt-theme-mode="dark"] .api-hint { color: #94a3b8; }
+/* =========================================================
+   Theme: toxic (swamp dark, lime accent). Answers both the
+   toast's own `data-wt-theme="toxic"` and the family's
+   `data-wire-theme="toxic"`, like studio, so toasts, modals,
+   pickers and tables match under one attribute. The --wt-*
+   colours are set here as well as the --wire-* ones, because
+   on a component `data-wt-theme` the root's derived values
+   would not follow. Dark always, like neon.
+   ========================================================= */
+[data-wire-theme="toxic"],
+[data-wt-theme="toxic"] {
+    --wire-bg: #0c1317;
+    --wire-bg-elevated: #111b20;
+    --wire-accent: #a3e635;
+    --wire-text: #ecfccb;
+    --wire-text-muted: rgba(217, 249, 157, 0.62);
+    --wire-border: rgba(163, 230, 53, 0.18);
+    --wire-border-strong: rgba(163, 230, 53, 0.4);
+    --wire-radius: 12px;
+    --wire-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(163, 230, 53, 0.08);
+
+    --wt-bg: #111b20;
+    --wt-text: #ecfccb;
+    --wt-text-muted: rgba(217, 249, 157, 0.62);
+    --wt-border: rgba(163, 230, 53, 0.25);
+    --wt-success: #a3e635;
+    --wt-error: #fb7185;
+    --wt-warning: #fbbf24;
+    --wt-info: #a3e635;
+}
+[data-wire-theme="toxic"] .wt-toast,
+[data-wt-theme="toxic"] .wt-toast {
+    border-radius: 12px;
+    /* Tight: the toast region clips what spills past it, and a wide shadow showed as a
+       dark rectangle around the stack. */
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), 0 0 10px rgba(163, 230, 53, 0.08);
+}
 </style>
 </head>
 <body>
@@ -747,6 +784,7 @@ pre code {
                     <option value="chatgpt">chatgpt</option>
                     <option value="synthwave">synthwave</option>
                     <option value="brutalist">brutalist</option>
+                    <option value="toxic">toxic</option>
                 </select>
             </div>
             <div class="control">
